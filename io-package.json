@@ -1,0 +1,95 @@
+{
+	"common": {
+		"name": "security-alert",
+		"version": "0.0.1",
+		"news": {
+			"0.0.1": {
+				"en": "initial release",
+				"de": "Erstveröffentlichung",
+				"ru": "Начальная версия",
+				"pt": "lançamento inicial",
+				"nl": "Eerste uitgave",
+				"fr": "Première version",
+				"it": "Versione iniziale",
+				"es": "Versión inicial",
+				"pl": "Pierwsze wydanie",
+				"zh-cn": "首次出版"
+			}
+		},
+		"title": "Security alert",
+		"titleLang": {
+			"en": "Security alert",
+			"de": "Sicherheitsalarm",
+			"ru": "Предупреждение системы безопасности",
+			"pt": "Alerta de segurança",
+			"nl": "Beveiligingsalarm",
+			"fr": "Alerte de sécurité",
+			"it": "Allarme di sicurezza",
+			"es": "Alerta de seguridad",
+			"pl": "Alarm bezpieczeństwa",
+			"zh-cn": "安全警报"
+		},
+		"desc": {
+			"en": "Check actors for security alert system",
+			"de": "Überprüfen Sie die Akteure auf Sicherheitswarnsysteme",
+			"ru": "Проверить актеров на наличие системы оповещения",
+			"pt": "Verifique os atores para o sistema de alerta de segurança",
+			"nl": "Controleer actoren voor beveiligingswaarschuwingssysteem",
+			"fr": "Vérifier les acteurs pour le système d'alerte de sécurité",
+			"it": "Controlla gli attori per il sistema di avviso di sicurezza",
+			"es": "Verifique a los actores para el sistema de alerta de seguridad",
+			"pl": "Sprawdź aktorów pod kątem systemu ostrzegania o bezpieczeństwie",
+			"zh-cn": "检查参与者的安全警报系统"
+		},
+		"authors": [
+			"ioKlausi <nii@gmx.at>"
+		],
+		"keywords": [
+			"alert",
+			"security"
+		],
+		"license": "MIT",
+		"platform": "Javascript/Node.js",
+		"main": "main.js",
+		"icon": "security-alert.png",
+		"enabled": true,
+		"extIcon": "https://raw.githubusercontent.com/Homemade-Disaster/ioBroker.security-alert/master/admin/security-alert.png",
+		"readme": "https://github.com/Homemade-Disaster/ioBroker.security-alert/blob/master/README.md",
+		"loglevel": "info",
+		"mode": "daemon",
+		"type": "alarm",
+		"compact": true,
+		"connectionType": "local",
+		"dataSource": "poll",
+		"materialize": true,
+		"materializeTab": true,
+		"adminTab": {
+			"singleton": true,
+			"name": {
+				"en": "Security alert",
+				"de": "Sicherheitsalarm",
+				"ru": "Предупреждение системы безопасности",
+				"pt": "Alerta de segurança",
+				"nl": "Beveiligingsalarm",
+				"fr": "Alerte de sécurité",
+				"it": "Allarme di sicurezza",
+				"es": "Alerta de seguridad",
+				"pl": "Alarm bezpieczeństwa",
+				"zh-cn": "安全警报"
+			},
+			"link": "",
+			"fa-icon": "info"
+		},
+		"dependencies": [
+			{
+				"js-controller": ">=2.0.0"
+			}
+		]
+	},
+	"native": {
+		"option1": true,
+		"option2": "42"
+	},
+	"objects": [],
+	"instanceObjects": []
+}
