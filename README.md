@@ -12,14 +12,22 @@
 
 **Tests:** ![Test and Release](https://github.com/Homemade-Disaster/ioBroker.security-alert/workflows/Test%20and%20Release/badge.svg)
 
+**This adapter uses Sentry libraries to automatically report exceptions and code errors to the developers.** For more details and for information how to disable the error reporting see [Sentry-Plugin Documentation](https://github.com/ioBroker/plugin-sentry#plugin-sentry)! Sentry reporting is used starting with js-controller 3.0.
+
 ## security-alert adapter for ioBroker
 
-Check actors for security alert system
+Depending on the defined enumerations the security alert will react a status changes of different sensors. It sends notifications and activate a siren by getting the right status witch can be defined in the adapter configuration.
+
+### Configuration
+
 
 ## Dependencies
-The adapter subscribes your defined enumerations and activates the security system if the status changes to alert status.
+The adapter is using enumerations of ioBroker. Notifications can be send using Pushover, Telegram, eMail, WhatsAPP, Alexa and AWTRIX.
 
 ## Changelog
+
+### 0.0.2
+* (ioKlausi) adapter config and general functions created
 
 ### 0.0.1
 * (ioKlausi) initial release

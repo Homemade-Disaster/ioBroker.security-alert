@@ -5,11 +5,17 @@
 	<!-- Load ioBroker scripts and styles-->
 	<link rel="stylesheet" type="text/css" href="../../css/adapter.css" />
 	<link rel="stylesheet" type="text/css" href="../../lib/css/materialize.css">
+	<link rel="stylesheet" type="text/css" href="../../lib/css/themes/jquery-ui/default/jquery-ui.min.css">
+	<link type="text/css" rel="stylesheet" href="../../lib/css/fancytree/ui.fancytree.min.css"/>
+	<link rel="stylesheet" type="text/css" href="../../lib/css/iob/selectID.css"/>
 
 	<script type="text/javascript" src="../../lib/js/jquery-3.2.1.min.js"></script>
-	<script type="text/javascript" src="../../socket.io/socket.io.js"></script>
+	<script type="text/javascript" src="../../lib/js/jquery-ui-1.10.3.full.min.js"></script>
+	<script type="text/javascript" src="../../lib/js/jquery.fancytree-all.min.js"></script>
+  <script type="text/javascript" src="../../socket.io/socket.io.js"></script>
 
 	<script type="text/javascript" src="../../js/translate.js"></script>
+	<script type="text/javascript" src="../../lib/js/selectID.js"></script>
 	<script type="text/javascript" src="../../lib/js/materialize.js"></script>
 	<script type="text/javascript" src="../../js/adapter-settings.js"></script>
 
@@ -18,6 +24,10 @@
 	<script type="text/javascript" src="words.js"></script>
 
 	<script type="text/javascript">
+	var sensors = [];
+	var alexa = [];
+	var awtrix = [];
+
 	// Password de-/encrypt
 	function encrypt(key, value) {
 		var result = '';
@@ -36,6 +46,9 @@
 
 	// This will be called by the admin adapter when the settings page loads
 	function load(settings, onChange) {
+		sensors = settings.sensors || [];
+		alexa = settings.alexa || [];
+		awtrix = settings.awtrix || [];
 		// example: select elements with id=key and class=value and insert value
 		$('.value').each(function () {
 			var $key = $(this);
@@ -60,8 +73,27 @@
 				});
 			}
 		});
+		getAlertEnumerationsHelp(onChange);
+
 		showHideSettings();
+
 		onChange(false);
+
+		values2table('sensors', sensors, onChange);
+		values2table('alexa', alexa, onChange);
+		values2table('awtrix', awtrix, onChange);
+
+		$('#sensors .values-buttons[data-command="edit"]').on('click', function () {
+				var id = $(this).data('index');
+				initSelectId(function (sid) {
+						sid.selectId('show', $('#sensors .values-input[data-name="alert_enum"][data-index="' + id + '"]').val(), function (newId) {
+								if (newId) {
+										$('#sensors .values-input[data-name="alert_enum"][data-index="' + id + '"]').val(newId).trigger('change');
+								}
+						});
+				});
+		});
+
 		M.updateTextFields();
 
 		getAdapterInstances('telegram', function (instances) {
@@ -81,6 +113,42 @@
 		sendTo(null, 'getTelegramUser', null, function (obj) {
 			fillTelegramUser(settings['telegramUser'], obj)
 		});
+	}
+	var selectId;
+	function initSelectId(callback) {
+			if (selectId) {
+					return callback(selectId);
+			}
+			socket.emit('getObjects', function (err, objs) {
+					selectId = $('#dialog-select-member').selectId('init',  {
+							noMultiselect: true,
+							objects: objs,
+							imgPath:       '../../lib/css/fancytree/',
+							filter:        {type: 'enum'},
+							name:          'scenes-select-state',
+							texts: {
+									select:          _('Select'),
+									cancel:          _('Cancel'),
+									all:             _('All'),
+									id:              _('ID'),
+									name:            _('Name'),
+									role:            _('Role'),
+									room:            _('Room'),
+									value:           _('Value'),
+									selectid:        _('Select ID'),
+									from:            _('From'),
+									lc:              _('Last changed'),
+									ts:              _('Time stamp'),
+									wait:            _('Processing...'),
+									ack:             _('Acknowledged'),
+									selectAll:       _('Select all'),
+									unselectAll:     _('Deselect all'),
+									invertSelection: _('Invert selection')
+							},
+							columns: ['image', 'name']
+					});
+					callback(selectId);
+			});
 	}
 
 	function fillTelegramUser(id, str) {
@@ -123,6 +191,9 @@
 				obj[id] = value;
 			}
 		});
+		obj.sensors = table2values('sensors');
+		obj.alexa = table2values('alexa');
+		obj.awtrix = table2values('awtrix');
 		callback(obj);
 	}
 
@@ -150,13 +221,23 @@
 				$('.pushover').hide();
 		}
 		}).trigger('change');
-
-		if ($('#notificationEnabled').prop('checked')) {
-				$('.tabNotification').show();
-		} else {
-				$('.tabNotification').hide();
-		}
 	}
+
+	function getAlertEnumerationsHelp(onChange) {
+    //sendTo(namespace, 'listUart', null, function (list) {
+        //if (!list) return;
+        const element = $('#enumerations');
+        //for (let j = 0; j < list.length; j++) {
+				for (let j = 0; j < 3; j++) {
+            element.append('<li><a href="#!">test</a></li>');
+        }
+        $('#enumerations a').click(function() {
+            $('#enumerations').val($(this).text());
+            Materialize.updateTextFields();
+            onChange();
+        });
+    //});
+}
 	</script>
 </head>
 
@@ -168,15 +249,13 @@
 			</div>
 		</div>
 
-		<!-- Put your content here -->
-
-		<!-- For example columns with settings: -->
 		<div class="row">
 			<div class="col s12">
-				<ul class="tabs" id="netatmoTabs">
-					<li class="tab col tabAlert"><a href="#tabAlert" class="translate active">Alert settings</a></li>
-					<li class="tab col tabHazard"><a href="#tabAPI" class="translate">Hazard alarm</a></li>
-					<li class="tab col tabDoorwindow"><a href="#tabDoorWindow" class="translate">Door and window reed contacts</a></li>
+				<ul class="tabs" id="securityTabs">
+					<li class="tab col tabAlert">       <a href="#tabAlert"        class="translate active">Alarm settings</a></li>
+					<li class="tab col tabSensors">     <a href="#tabSensors"      class="translate">Sensors</a></li>
+					<li class="tab col tabAlexa">       <a href="#tabAlexa"        class="translate">Alexa messages</a></li>
+					<li class="tab col tabAWTRIX">      <a href="#tabAWTRIX"       class="translate">AWTRIX messages</a></li>
 					<li class="tab col tabNotification"><a href="#tabNotification" class="translate">Notifications</a></li>
 				</ul>
 			</div>
@@ -185,45 +264,156 @@
 			<div id="tabAlert" class="col s12 page">
 				<div class="row">
 					<div class="col s12">
-						<h6 class="title translate">Alert settings</h6>
+						<h6 class="title translate">Alarm settings</h6>
 					</div>
 				</div>
 
-				<div class="input-field col s12">
-						<input class="value" id="notificationEnabled" type="checkbox"/>
-						<label for="notificationEnabled" class="translate">Enable / Disable security alert</label>
+				<div class="row">
+					<div class="input-field input-group col s12 m6 l4">
+							<input id="AlarmSiren" type="text" class="value validate"/>
+							<label for="AlarmSiren" class="translate">Alarm siren</label>
+							<span class="suffix">
+									<a id="selector" class='dropdown-trigger btn' href='#' data-target='enumerations'><i class="material-icons">arrow_drop_down</i></a>
+									<!-- Dropdown Structure -->
+									<ul id='enumerations' class='dropdown-content'>
+									</ul>
+							</span>
+					</div>
+				</div>				
+				<div class="row">
+					<div class="input-field col s6">
+							<input class="value" type="text" id="AlarmSirenOn" />
+							<label class="translate" for="AlarmSirenOn">Siren on</label>
+					</div>
+					<div class="input-field col s6">
+							<input class="value" type="text" id="AlarmSirenOff" />
+							<label class="translate" for="AlarmSirenOff">Siren off</label>
+					</div>
+				</div>
+				<div class="row">
+					<div class="input-field col s6">
+							<input class="value" type="text" id="AlarmSirenIntruderOn" />
+							<label class="translate" for="AlarmSirenIntruderOn">Intruder alarm on</label>
+					</div>
+					<div class="input-field col s6">
+							<input class="value" type="text" id="AlarmSirenIntruderOff" />
+							<label class="translate" for="AlarmSirenIntruderOff">Intruder alarm off</label>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="input-field col s6">
+							<input class="value" type="number" id="AlertOn_Delay" />
+							<label class="translate" for="AlertOn_Delay">Delay for alert on</label>
+					</div>
+					<div class="input-field col s6">
+							<input class="value" type="number" id="AlertMessageDelay" />
+							<label class="translate" for="AlertMessageDelay">Delay for hazard alerts</label>
+					</div>
 				</div>
 			</div>
 
-			<!-- ++++++++++ TAB: Hazard settings ++++++++++ -->
-			<div id="tabHazard"    class="col s12 page">
+			<!-- ++++++++++ TAB: sensors ++++++++++ -->
+			<div id="tabSensors"    class="col s12 page">
 				<div class="row">
 					<div class="col s12">
-						<h6 class="title translate">Hazard alarm</h6>
+						<h6 class="title translate">Sensor categories / groups</h6>
+					</div>
+				</div>
+				<div class="row">
+					<div class="input-field col s6">
+							<input class="value" type="text" id="enumAlarm" />
+							<label class="translate" for="enumAlarm">Category (enum) for alerts</label>
 					</div>
 				</div>
 
-				<div class="row">
-					<div class="input-field col s6 col-refreshstates">
-							<input class="value" type="text" id="enumHazard" />
-							<label class="translate" for="enumHazard">Enumeration for hazard alarm</label>
-					</div>
+				<div class="col s12" id="sensors">
+						<a class="btn-floating waves-effect waves-light blue table-button-add"><i class="material-icons">add</i></a>
+						<div class="table-values-div">
+								<table class="table-values">
+										<thead>
+										<tr>
+												<th data-name="_index"                                                                                  class="translate"></th>
+												<th data-name="alert_enum"      style="width: 170px" data-style="width: 170px"                          class="translate">Group</th>
+												<th data-buttons="edit"         style="width: 70px" ></th>
+												<th data-name="alert_value"     style="width: 50px; white-space: nowrap" data-style="width: 50px"       class="translate">Value</th>
+												<th data-name="alert_category"  style="width: 60px; white-space: nowrap" data-style="width: 60px"       class="translate" data-type="select" data-options="window;door;vibration;others_contacts;fire;water;gas;co;others_hazard">Category</th>
+												<th data-name="alert_type"      style="width: 60px; white-space: nowrap" data-style="width: 60px"       class="translate" data-type="select" data-options="hazard;sensors">Type</th>
+												<th data-name="alert_siren"                                                                             class="translate" data-type="checkbox">Siren</th>
+												<th data-name="alert_message"   style="width: 370px" data-style="width: 370px"                          class="translate">Message text</th>
+												<th data-name="alert_notif"                                                                             class="translate" data-type="checkbox">Notification</th>
+												<th data-name="alert_alexa"                                                                             class="translate" data-type="checkbox">Alexa</th>
+												<th data-name="alert_awtrix"                                                                            class="translate" data-type="checkbox">AWTRIX</th>
+												<th data-buttons="delete up down" style="width: 120px"></th>
+										</tr>
+										</thead>
+								</table>
+						</div>
 				</div>
 			</div>
 
-			<!-- ++++++++++ TAB: Door/Window settings ++++++++++ -->
-			<div id="tabDoorwindow"    class="col s12 page">
+			<!-- ++++++++++ TAB: Alexa ++++++++++ -->
+			<div id="tabAlexa"    class="col s12 page">
 				<div class="row">
 					<div class="col s12">
-						<h6 class="title translate">Door and window reed contacts</h6>
+						<h6 class="title translate">Alexa</h6>
+					</div>
+				</div>
+				<div class="row">
+					<div class="input-field col s6">
+							<input class="value" type="number" id="Alexa_volume_up" />
+							<label class="translate" for="Alexa_volume_up">Volume for messages</label>
+					</div>
+					<div class="input-field col s6">
+							<input class="value" type="number" id="Alexa_volume_no" />
+							<label class="translate" for="Alexa_volume_no">Standard volume</label>
+					</div>
+				</div>
+				<div class="col s12" id="alexa">
+						<a class="btn-floating waves-effect waves-light blue table-button-add"><i class="material-icons">add</i></a>
+						<div class="table-values-div">
+								<table class="table-values">
+										<thead>
+										<tr>
+												<th data-name="_index"                                                            class="translate"></th>
+												<th data-name="alexa_oid"         style="width: 370px"  data-style="width: 370px" class="translate" data-type="OID">Alexa speaks</th>
+												<th data-name="alexa_repeate"     style="width: 50px;"  data-style="width: 50px"  class="translate" data-type="number">Repeat message</th>
+												<th data-name="alexa_volume_oid"  style="width: 370px;" data-style="width: 370px" class="translate" data-type="OID">Volume</th>
+												<th data-buttons="delete up down" style="width: 120px"></th>
+										</tr>
+										</thead>
+								</table>
+						</div>
+				</div>
+			</div>
+
+			<!-- ++++++++++ TAB: AWTRIX ++++++++++ -->
+			<div id="tabAWTRIX"    class="col s12 page">
+				<div class="row">
+					<div class="col s12">
+						<h6 class="title translate">AWTRIX</h6>
 					</div>
 				</div>
 
-				<div class="row">
-					<div class="input-field col s6 col-refreshstates">
-							<input class="value" type="text" id="enumDoorWindow" />
-							<label class="translate" for="enumDoorWindow">Enumeration for door and window contacts</label>
-					</div>
+				<div class="col s12" id="awtrix">
+						<a class="btn-floating waves-effect waves-light blue table-button-add"><i class="material-icons">add</i></a>
+						<div class="table-values-div">
+								<table class="table-values">
+										<thead>
+										<tr>
+												<th data-name="_index"                                                         class="translate"></th>
+												<th data-name="awtrix_oid"      style="width: 470px" data-style="width: 470px" class="translate" data-type="OID">AWTRIX message</th>
+												<th data-name="awtrix_force"    style="width: 50px;" data-style="width: 50px"  class="translate" data-type="checkbox">Force</th>
+												<th data-name="awtrix_lifetime" style="width: 50px;" data-style="width: 50px"  class="translate" data-type="number">Lifetime</th>
+												<th data-name="awtrix_sound"    style="width: 50px;" data-style="width: 50px"  class="translate" data-type="number">Sound</th>
+												<th data-name="awtrix_icon"     style="width: 50px;" data-style="width: 50px"  class="translate" data-type="number">Icon</th>
+												<th data-name="awtrix_moveicon" style="width: 50px;" data-style="width: 50px"  class="translate" data-type="checkbox">move icon</th>
+												<th data-name="awtrix_color"                                                   class="translate" data-type="color">color</th>
+												<th data-buttons="delete up down" style="width: 120px"></th>
+										</tr>
+										</thead>
+								</table>
+						</div>
 				</div>
 			</div>
 
@@ -286,6 +476,16 @@
 									<label for="pushoverSilentNotice" class="translate">Silent Notice</label>
 							</div>
 					</div>
+					<div class="row pushover">
+							<div class="input-field col s12 m6 l3 pushover">
+									<input class="value" id="pushoverSound" type="text">
+									<label for="pushoverSound" class="translate">sound (optional)</label>
+							</div>
+							<div class="input-field col s12 m6 l3 pushover">
+									<input class="value" id="pushoverPriority" type="number"/>
+									<label for="pushoverPriority" class="translate">Priority</label>
+							</div>
+					</div>
 					<!-- email -->
 					<div class="row email">
 							<div class="input-field col s12 m6 l3 email">
@@ -341,6 +541,24 @@
 			</div>
 		</div>
 	</div>
+
+	<div class="m material-dialogs">
+        <div id="dialog-select-member" class="modal modal-fixed-footer">
+            <div class="modal-content">
+                <div class="row">
+                    <div class="col s12 title"></div>
+                </div>
+                <div class="row">
+                    <div class="col s12 dialog-content">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a class="modal-action modal-close waves-effect waves-green btn btn-set"><i class="large material-icons left">check</i><span class="translate">Select</span></a>
+                <a class="modal-action modal-close waves-effect waves-green btn btn-close"><i class="large material-icons left ">close</i><span class="translate">Cancel</span></a>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

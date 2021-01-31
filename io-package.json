@@ -1,8 +1,20 @@
 {
 	"common": {
 		"name": "security-alert",
-		"version": "0.0.1",
+		"version": "0.0.2",
 		"news": {
+			"0.0.2": {
+		    "en": "adapter config and general functions created",
+		    "de": "Adapterkonfiguration und allgemeine Funktionen erstellt",
+		    "ru": "конфигурация адаптера и общие функции созданы",
+		    "pt": "configuração do adaptador e funções gerais criadas",
+		    "nl": "adapterconfiguratie en algemene functies gemaakt",
+		    "fr": "configuration de l'adaptateur et fonctions générales créées",
+		    "it": "configurazione dell'adattatore e funzioni generali create",
+		    "es": "configuración del adaptador y funciones generales creadas",
+		    "pl": "konfiguracja adaptera i utworzone funkcje ogólne",
+		    "zh-cn": "适配器配置和常规功能已创建"
+			},
 			"0.0.1": {
 				"en": "initial release",
 				"de": "Erstveröffentlichung",
@@ -30,16 +42,16 @@
 			"zh-cn": "安全警报"
 		},
 		"desc": {
-			"en": "Check actors for security alert system",
-			"de": "Überprüfen Sie die Akteure auf Sicherheitswarnsysteme",
-			"ru": "Проверить актеров на наличие системы оповещения",
-			"pt": "Verifique os atores para o sistema de alerta de segurança",
-			"nl": "Controleer actoren voor beveiligingswaarschuwingssysteem",
-			"fr": "Vérifier les acteurs pour le système d'alerte de sécurité",
-			"it": "Controlla gli attori per il sistema di avviso di sicurezza",
-			"es": "Verifique a los actores para el sistema de alerta de seguridad",
-			"pl": "Sprawdź aktorów pod kątem systemu ostrzegania o bezpieczeństwie",
-			"zh-cn": "检查参与者的安全警报系统"
+			"en": "Depending on sensor status send notifications and activate siren",
+	    "de": "Je nach Sensorstatus Benachrichtigungen senden und Sirene aktivieren",
+	    "ru": "В зависимости от состояния датчика отправлять уведомления и включать сирену",
+	    "pt": "Dependendo do status do sensor, envie notificações e ative a sirene",
+	    "nl": "Stuur, afhankelijk van de sensorstatus, meldingen en activeer de sirene",
+	    "fr": "En fonction de l'état du capteur, envoyer des notifications et activer la sirène",
+	    "it": "A seconda dello stato del sensore, invia notifiche e attiva la sirena",
+	    "es": "Dependiendo del estado del sensor, envíe notificaciones y active la sirena",
+	    "pl": "W zależności od stanu czujnika wysyłaj powiadomienia i aktywuj syrenę",
+	    "zh-cn": "根据传感器状态发送通知并激活警报器"
 		},
 		"authors": [
 			"ioKlausi <nii@gmx.at>"
@@ -62,34 +74,51 @@
 		"connectionType": "local",
 		"dataSource": "poll",
 		"materialize": true,
-		"materializeTab": true,
-		"adminTab": {
-			"singleton": true,
-			"name": {
-				"en": "Security alert",
-				"de": "Sicherheitsalarm",
-				"ru": "Предупреждение системы безопасности",
-				"pt": "Alerta de segurança",
-				"nl": "Beveiligingsalarm",
-				"fr": "Alerte de sécurité",
-				"it": "Allarme di sicurezza",
-				"es": "Alerta de seguridad",
-				"pl": "Alarm bezpieczeństwa",
-				"zh-cn": "安全警报"
-			},
-			"link": "",
-			"fa-icon": "info"
-		},
 		"dependencies": [
 			{
-				"js-controller": ">=2.0.0"
+				"js-controller": ">=3.0.0"
 			}
-		]
+		],
+		"plugins": {
+			"sentry": {
+				"dsn": "https://e2ad1567e15b411fb44efa5c45009400@o496760.ingest.sentry.io/5616349"
+			}
+		}
 	},
 	"native": {
-		"option1": true,
-		"option2": "42"
+		"AlarmSirenOn": 2,
+		"AlarmSirenOff": 0,
+		"AlarmSirenIntruderOn": 2,
+		"AlarmSirenIntruderOff": 1,
+		"Alexa_volume_up": 60,
+		"Alexa_volume_no": 30,
+		"AlertOn_Delay": 10000,
+		"AlertMessageDelay": 10000,
+		"notifications": "000",
+		"notificationEnabled": false,
+		"notificationsType": "Telegram",
+		"telegramInstance": "telegram.0",
+		"telegramUser": "All Receiver",
+		"telegramSilentNotice": false,
+		"whatsappInstance": "whatsapp-cmb.0",
+		"pushoverInstance": "pushover.0",
+		"pushoverSilentNotice": false,
+		"pushoverDeviceID": "",
+		"emailReceiver": "xxx@xxx.com",
+		"emailSender": "xxx@xxx.com",
+		"emailInstance": "email.0",
+		"NoticeType": "longNotice",
+		"WaitToSend": 0
 	},
 	"objects": [],
-	"instanceObjects": []
+	"instanceObjects": [
+		{
+			"_id": "AlertSystem",
+			"type": "device",
+			"common": {
+				"name": "Alarm settings"
+			},
+			"native": {}
+		}
+	]
 }
